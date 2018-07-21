@@ -11,8 +11,8 @@ A small development envirionment using docker and ubuntu/xenial
 - python3
 - rust/nightly
 - nvim
- - NERDTree
- - YouCompleteMe
+	- NERDTree
+	- YouCompleteMe
 
 ## Notes
 
