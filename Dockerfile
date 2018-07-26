@@ -1,3 +1,5 @@
+ARG DEV_ENV_VERSION=18.07.25
+
 ARG UBUNTU_RELEASE=xenial
 
 FROM ubuntu:${UBUNTU_RELEASE}
@@ -56,7 +58,9 @@ RUN sudo apt-get install -y libevent-2.0-5 libevent-dev libncurses-dev && \
 
 ENV TERM=screen-256color
 
-COPY ./.tmux.conf "/home/$USER/.tmux.conf"
+WORKDIR "$HOME"
+
+COPY ./.tmux.conf "$HOME/.tmux.conf"
 
 RUN sudo chown "$USER:$USER" "$HOME/.tmux.conf"
 
@@ -107,14 +111,19 @@ RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
 	. ~/.nvm/nvm.sh && \
 	. $HOME/.cargo/env && \
 	python3 ~/.config/nvim/plugged/YouCompleteMe/install.py \
-	--js-completer --rust-completer && \
-# clean up
-	sudo apt-get clean && \
-	sudo rm -rf /var/lib/apt/lists/*
+	--js-completer --rust-completer
+
+# enable tern support
+COPY ./.tern-config "$HOME/.tern-config"
+
+RUN sudo chown "$USER:$USER" "$HOME/.tern-config"
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
 
-RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc"
+RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc" && \
+# clean up
+	sudo apt-get clean && \
+	sudo rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash"]
