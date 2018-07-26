@@ -13,7 +13,7 @@ A small development envirionment using docker and ubuntu/xenial
 - nvim
 	- NERDTree
 	- YouCompleteMe
-
+		- tern completion engine
 ## Notes
 
 Started with a [docker tutorial from AGhost-7] on github.
