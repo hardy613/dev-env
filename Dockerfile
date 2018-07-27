@@ -1,4 +1,4 @@
-ARG DEV_ENV_VERSION=18.07.25
+ARG DEV_ENV_VERSION=18.07.27
 
 ARG UBUNTU_RELEASE=xenial
 
@@ -69,7 +69,7 @@ RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.s
 
 ENV NVM_DIR $HOME/.nvm
 
-RUN . ~/.nvm/nvm.sh && nvm install --lts && nvm alias default stable
+RUN . "$NVM_DIR/nvm.sh" && nvm install --lts && nvm alias default stable
 
 # rust nightly
 # Install openssl/pkgconf to compile against for reqwest and Iron.
@@ -108,15 +108,13 @@ RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
 	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
 	nvim +PlugInstall +qall && \
 # youCompleteMe
-	. ~/.nvm/nvm.sh && \
-	. $HOME/.cargo/env && \
+	. "$NVM_DIR/nvm.sh" && \
+	. "$HOME/.cargo/env" && \
 	python3 ~/.config/nvim/plugged/YouCompleteMe/install.py \
 	--js-completer --rust-completer
 
 # enable tern support
-COPY ./.tern-config "$HOME/.tern-config"
-
-RUN sudo chown "$USER:$USER" "$HOME/.tern-config"
+RUN echo '{"plugins": {"node": {}}}' > ~/.tern-config
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
