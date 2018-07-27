@@ -134,3 +134,5 @@ let g:netrw_list_hide=netrw_gitignore#Hide()
 " or declaration (depending on what the cursor is on).
 au FileType javascript nmap gd :YcmCompleter GoTo<CR>
 
+" nice git messages
+autocmd Filetype gitcommit setl colorcolumn=72
