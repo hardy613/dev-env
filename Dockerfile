@@ -1,3 +1,5 @@
+ARG DEV_ENV_VERSION=18.07.27
+
 ARG UBUNTU_RELEASE=xenial
 
 FROM ubuntu:${UBUNTU_RELEASE}
@@ -56,7 +58,9 @@ RUN sudo apt-get install -y libevent-2.0-5 libevent-dev libncurses-dev && \
 
 ENV TERM=screen-256color
 
-COPY ./.tmux.conf "/home/$USER/.tmux.conf"
+WORKDIR "$HOME"
+
+COPY ./.tmux.conf "$HOME/.tmux.conf"
 
 RUN sudo chown "$USER:$USER" "$HOME/.tmux.conf"
 
@@ -65,7 +69,7 @@ RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.s
 
 ENV NVM_DIR $HOME/.nvm
 
-RUN . ~/.nvm/nvm.sh && nvm install --lts && nvm alias default stable
+RUN . "$NVM_DIR/nvm.sh" && nvm install --lts && nvm alias default stable
 
 # rust nightly
 # Install openssl/pkgconf to compile against for reqwest and Iron.
@@ -89,6 +93,12 @@ RUN sudo apt-get install -y python3-pip && \
 	sudo apt-get update && \
 	sudo apt-get install -y --no-install-recommends python3-dev
 
+# Power TMUX, doing this here cause we need pip
+RUN sudo pip3 install powerline-status && \
+	sudo pip3 install powerline-gitstatus && \
+# xclip
+	sudo apt-get install -y xclip
+
 # nvim
 RUN sudo add-apt-repository ppa:neovim-ppa/unstable && \
 	sudo apt-get update && \
@@ -104,17 +114,20 @@ RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
 	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
 	nvim +PlugInstall +qall && \
 # youCompleteMe
-	. ~/.nvm/nvm.sh && \
-	. $HOME/.cargo/env && \
+	. "$NVM_DIR/nvm.sh" && \
+	. "$HOME/.cargo/env" && \
 	python3 ~/.config/nvim/plugged/YouCompleteMe/install.py \
-	--js-completer --rust-completer && \
-# clean up
-	sudo apt-get clean && \
-	sudo rm -rf /var/lib/apt/lists/*
+	--js-completer --rust-completer
+
+# enable tern support
+RUN echo '{"plugins": {"node": {}}}' > ~/.tern-config
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
 
-RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc"
+RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc" && \
+# clean up
+	sudo apt-get clean && \
+	sudo rm -rf /var/lib/apt/lists/*
 
-CMD ["/bin/bash"]
+CMD ["tmux", "new"]
