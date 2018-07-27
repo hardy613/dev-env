@@ -130,3 +130,7 @@ let g:netrw_altv=1 " open splits to the right
 let g:netrw_liststyle=3 " tree view
 let g:netrw_list_hide=netrw_gitignore#Hide()
 
+" When using `gd`, this will jump to either the definition
+" or declaration (depending on what the cursor is on).
+au FileType javascript nmap gd :YcmCompleter GoTo<CR>
+

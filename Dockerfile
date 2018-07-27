@@ -93,6 +93,12 @@ RUN sudo apt-get install -y python3-pip && \
 	sudo apt-get update && \
 	sudo apt-get install -y --no-install-recommends python3-dev
 
+# Power TMUX, doing this here cause we need pip
+RUN sudo pip3 install powerline-status && \
+	sudo pip3 install powerline-gitstatus && \
+# xclip
+	sudo apt-get install -y xclip
+
 # nvim
 RUN sudo add-apt-repository ppa:neovim-ppa/unstable && \
 	sudo apt-get update && \
@@ -124,4 +130,4 @@ RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc" && \
 	sudo apt-get clean && \
 	sudo rm -rf /var/lib/apt/lists/*
 
-CMD ["/bin/bash"]
+CMD ["tmux", "new"]
