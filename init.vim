@@ -50,6 +50,9 @@ Plug 'othree/html5.vim'
 " Syntax support for editing markdown files.
 Plug 'tpope/vim-markdown'
 
+" Graphql support
+Plug 'jparise/vim-graphql'
+
 " End the list of vim plugins
 call plug#end()
 
