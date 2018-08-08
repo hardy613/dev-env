@@ -3,17 +3,17 @@
 ## August 2018
 - Added PGSQL support with docker-compose
 - Added graphql syntax support for nvim
-- Updated Node install to latest
+- Updated Node to install latest and not --lts
 
 ## July 2018
-- added SSH
-- added cURL
-- added tmux
-- added node/lts
-- addedpython3
-- added rust/nightly
-- added nvim
+- Added SSH
+- Added cURL
+- Added tmux
+- Added node/lts
+- Added python3
+- Added rust/nightly
+- Added nvim
 	-	NERDTree
 	-	YouCompleteMe
-		-	tern completion engine
+		-	Tern completion engine
 
