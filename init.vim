@@ -53,6 +53,8 @@ Plug 'tpope/vim-markdown'
 " Graphql support
 Plug 'jparise/vim-graphql'
 
+" ALE
+Plug 'w0rp/ale'
 " End the list of vim plugins
 call plug#end()
 
