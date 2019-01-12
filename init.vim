@@ -68,8 +68,11 @@ set noexpandtab
 " Search as you type the query
 set incsearch
 
-"show row numbers
+" show row numbers
 set relativenumber
+
+" by default '0' is the current line number in the margin
+set number
 
 " Enable mouse control
 set mouse=a
