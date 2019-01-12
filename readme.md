@@ -11,6 +11,7 @@ A small development envirionment using docker and ubuntu/xenial
 - python3
 - rust/nightly
 - nvim
+	- w0rp/ale
 	- NERDTree
 	- YouCompleteMe
 		- tern completion engine
