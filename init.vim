@@ -53,10 +53,23 @@ Plug 'tpope/vim-markdown'
 " Graphql support
 Plug 'jparise/vim-graphql'
 
+" Typescript support
+Plug 'leafgarland/typescript-vim'
+Plug 'ianks/vim-tsx'
+
+" DOM typescript support
+Plug 'HerringtonDarkholme/yats.vim'
+
 " ALE
 Plug 'w0rp/ale'
 " End the list of vim plugins
 call plug#end()
+
+" Adding Typescript support with YouCompleteMe
+if !exists("g:ycm_semantic_triggers")
+  let g:ycm_semantic_triggers = {}
+endif
+let g:ycm_semantic_triggers['typescript'] = ['.']
 
 " Tab shizzle
 set tabstop=2
