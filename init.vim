@@ -32,9 +32,6 @@ Plug 'vim-airline/vim-airline-themes'
 " Git commit browser
 Plug 'junegunn/gv.vim'
 
-" AutoComplete (YouCompleteMe)
-Plug 'Valloric/YouCompleteMe'
-
 " Dims code.
 Plug 'junegunn/limelight.vim'
 
@@ -59,6 +56,9 @@ Plug 'ianks/vim-tsx'
 
 " DOM typescript support
 Plug 'HerringtonDarkholme/yats.vim'
+
+" AutoComplete (YouCompleteMe)
+Plug 'Valloric/YouCompleteMe'
 
 " ALE
 Plug 'w0rp/ale'
