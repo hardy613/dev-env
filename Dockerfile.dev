@@ -30,8 +30,6 @@ USER "$DOCKER_USER"
 
 ENV HOME "/home/$USER"
 
-WORKDIR "$HOME/code"
-
 # tools
 RUN sudo apt-get update && \
 	sudo apt-get install -y build-essential && \
@@ -86,7 +84,7 @@ RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.s
 ENV NVM_DIR $HOME/.nvm
 
 RUN . "$NVM_DIR/nvm.sh" && \
-	nvm install --lts && \
+	nvm install node && \
 	nvm alias default stable
 
 # rust nightly
@@ -103,6 +101,18 @@ RUN . $HOME/.cargo/env && \
 # RUST WASM support
 	curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && \
 	cargo install cargo-generate
+
+# deno
+RUN sudo apt-get update && sudo apt-get install unzip -y && \
+	curl -fsSL https://deno.land/x/install/install.sh | sh && \
+	sudo mkdir "/usr/local/etc/bash_completion.d" && \
+	sudo chown "$USER:$USER" "/usr/local/etc/bash_completion.d" && \
+	sudo "$HOME/.deno/bin/deno" completions bash > "/usr/local/etc/bash_completion.d/deno.bash" && \
+	sudo apt-get clean && \
+	sudo rm -rf /var/lib/apt/lists/*
+
+ENV DENO_INSTALL="/$HOME/.deno"
+ENV PATH="$DENO_INSTALL/bin:$PATH"
 
 # Java
 RUN sudo apt-get update && \
@@ -136,16 +146,13 @@ ENV EDITOR nvim
 # nvim plugins
 COPY ./init.vim "$HOME/.config/nvim/init.vim"
 
-#RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
-#	curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-#	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
-#	nvim +PlugInstall +qall && \
-#	. "$NVM_DIR/nvm.sh" && \
-#	. "$HOME/.cargo/env" && \
-#	python3 "$HOME/.config/nvim/plugged/YouCompleteMe/install.py" --racer-completer --ts-completer
-
-RUN . "$NVM_DIR/nvm.sh" && \
-	npm install typescript -g
+RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
+	curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
+	nvim +PlugInstall +qall && \
+	. "$NVM_DIR/nvm.sh" && \
+	. "$HOME/.cargo/env" && \
+	python3 "$HOME/.config/nvim/plugged/YouCompleteMe/install.py" --racer-completer --ts-completer
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
@@ -155,7 +162,9 @@ RUN sudo pip3 install docker-compose && \
 	sudo groupadd -g 999 docker && \
 	sudo usermod -aG docker "$DOCKER_USER"
 
-RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc"
+RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc" && sudo rm /tmp/.bashrc
+
+WORKDIR "$HOME/code"
 
 CMD ["tmux", "new"]
 
