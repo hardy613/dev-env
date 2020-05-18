@@ -110,6 +110,7 @@ RUN sudo apt-get update && sudo apt-get install unzip -y && \
 	sudo mkdir "/usr/local/etc/bash_completion.d" && \
 	sudo chown "$USER:$USER" "/usr/local/etc/bash_completion.d" && \
 	sudo "$HOME/.deno/bin/deno" completions bash > "/usr/local/etc/bash_completion.d/deno.bash" && \
+	sudo apt-get purge unzip -y && \
 	sudo apt-get clean && \
 	sudo rm -rf /var/lib/apt/lists/*
 
