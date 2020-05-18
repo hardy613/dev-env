@@ -1,20 +1,22 @@
 # dev-env
 
-A small development envirionment using docker and ubuntu/xenial
+A small development envirionment using docker and ubuntu/bionic
 
 ## Additions
 
 - SSH
 - cURL
 - tmux
-- node/lts
+- node
+- deno
 - python3
 - rust/nightly
 - nvim
 	- w0rp/ale
 	- NERDTree
 	- YouCompleteMe
-		- tern completion engine
+		- ts-completer
+		- racer-completer
 
 ## Notes
 

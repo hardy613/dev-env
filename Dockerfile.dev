@@ -1,10 +1,17 @@
-ARG UBUNTU_RELEASE=xenial
+ARG UBUNTU_RELEASE=bionic
 
 FROM ubuntu:${UBUNTU_RELEASE}
 
-RUN apt-get update && apt-get install -y sudo
+LABEL MAINTAINER hardy613@gmail.com
+
+ARG UBUNTU_RELEASE
+
+ENV UBUNTU_RELEASE=${UBUNTU_RELEASE}
 
 ENV DOCKER_USER sly613
+
+RUN apt-get update && \
+	apt-get install -y apt-utils sudo
 
 # remove sudo password
 RUN adduser --disabled-password --gecos '' "$DOCKER_USER" && \
@@ -60,7 +67,7 @@ RUN tar -xzf "$TMUX_TAR" -C /tmp
 
 WORKDIR "/tmp/tmux-$TMUX_VERSION"
 
-RUN sudo apt-get install -y libevent-2.0-5 libevent-dev libncurses-dev && \
+RUN sudo apt-get install -y libevent-2.1-6 libevent-dev libncurses-dev && \
 	./configure && \
 	make && \
 	sudo make install
@@ -78,7 +85,9 @@ RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.s
 
 ENV NVM_DIR $HOME/.nvm
 
-RUN . "$NVM_DIR/nvm.sh" && nvm install node && nvm alias default stable
+RUN . "$NVM_DIR/nvm.sh" && \
+	nvm install node && \
+	nvm alias default stable
 
 # rust nightly
 # Install openssl/pkgconf to compile against for reqwest and Iron.
@@ -88,20 +97,29 @@ RUN sudo apt-get update && \
 
 ENV RUST_DEFAULT_TOOLCHAIN='nightly'
 
-RUN git clone https://github.com/ticki/dybuk.git && \
-	. $HOME/.cargo/env && \
+RUN . $HOME/.cargo/env && \
 	cargo install cargo-watch && \
 	rustup component add rust-src --toolchain nightly && \
-	cargo install --path dybuk && \
 # RUST WASM support
 	curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && \
-	cargo install cargo-generate && \
-	rm -rf dybuk
+	cargo install cargo-generate
+
+# deno
+RUN sudo apt-get update && sudo apt-get install unzip -y && \
+	curl -fsSL https://deno.land/x/install/install.sh | sh && \
+	sudo mkdir "/usr/local/etc/bash_completion.d" && \
+	sudo chown "$USER:$USER" "/usr/local/etc/bash_completion.d" && \
+	sudo "$HOME/.deno/bin/deno" completions bash > "/usr/local/etc/bash_completion.d/deno.bash" && \
+	sudo apt-get clean && \
+	sudo rm -rf /var/lib/apt/lists/*
+
+ENV DENO_INSTALL="/$HOME/.deno"
+ENV PATH="$DENO_INSTALL/bin:$PATH"
 
 # Java
 RUN sudo apt-get update && \
 	DEBIAN_FRONTEND=noninteractive && \
-	sudo apt-get -y install openjdk-9-jdk-headless && \
+	sudo apt-get -y install openjdk-11-jdk-headless && \
 	sudo apt-get clean && \
 	sudo rm -rf /var/lib/apt/lists/*
 
@@ -109,18 +127,13 @@ RUN sudo apt-get update && \
 RUN sudo apt-get update && \
 	sudo apt-get install -y python3-pip && \
 	sudo pip3 install --upgrade pip && \
-	sudo pip3 install flake8 jedi virtualenv ptpython neovim && \
-	sudo apt-get update && \
-	sudo apt-get install -y --no-install-recommends python3-dev
+	sudo pip3 install flake8 jedi virtualenv ptpython neovim pipenv poetry && \
+	sudo apt-get install -y --no-install-recommends python3-dev python3-venv
 
 # Power TMUX, doing this here cause we need pip
-RUN sudo pip3 install powerline-status && \
-	sudo pip3 install powerline-gitstatus && \
-# xclip
-	sudo apt-get install -y xclip
-
-# pgcli
-RUN sudo pip3 install pgcli
+RUN sudo pip3 install powerline-status powerline-gitstatus && \
+# xclip pgcli
+	sudo apt-get install -y xclip pgcli
 
 # nvim
 RUN sudo apt-get install --no-install-recommends -y software-properties-common && \
@@ -131,6 +144,7 @@ RUN sudo apt-get install --no-install-recommends -y software-properties-common &
 	sudo apt-get purge -y software-properties-common
 
 ENV EDITOR nvim
+
 # nvim plugins
 COPY ./init.vim "$HOME/.config/nvim/init.vim"
 
@@ -138,14 +152,9 @@ RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
 	curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
 	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
 	nvim +PlugInstall +qall && \
-# youCompleteMe
 	. "$NVM_DIR/nvm.sh" && \
 	. "$HOME/.cargo/env" && \
-	python3 ~/.config/nvim/plugged/YouCompleteMe/install.py \
-	--js-completer --rust-completer
-
-# enable tern support
-RUN echo '{"plugins": {"node": {}}}' > ~/.tern-config
+	python3 "$HOME/.config/nvim/plugged/YouCompleteMe/install.py" --racer-completer --ts-completer
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
@@ -155,7 +164,9 @@ RUN sudo pip3 install docker-compose && \
 	sudo groupadd -g 999 docker && \
 	sudo usermod -aG docker "$DOCKER_USER"
 
-RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc"
+RUN sudo cat /tmp/.bashrc >> "$HOME/.bashrc" && sudo rm /tmp/.bashrc
+
+WORKDIR "$HOME/code"
 
 CMD ["tmux", "new"]
 
