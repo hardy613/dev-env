@@ -1,4 +1,4 @@
-ARG UBUNTU_RELEASE=bionic
+ARG UBUNTU_RELEASE=focal
 
 FROM ubuntu:${UBUNTU_RELEASE}
 
@@ -11,17 +11,19 @@ ENV UBUNTU_RELEASE=${UBUNTU_RELEASE}
 ENV DOCKER_USER sly613
 
 RUN apt-get update && \
-	apt-get install -y apt-utils sudo
-
+	apt-get install -y apt-utils sudo -y && \
 # remove sudo password
-RUN adduser --disabled-password --gecos '' "$DOCKER_USER" && \
+  adduser --disabled-password --gecos '' "$DOCKER_USER" && \
 	adduser "$DOCKER_USER" sudo && \
 # Give passwordless sudo. This is only acceptable as it is a private
 # development environment not exposed to the outside world. Do NOT do this on
 # your host machine or otherwise.
 	echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
 # remove the notification
-	touch ~/.sudo_as_admin_successful
+	touch ~/.sudo_as_admin_successful && \
+	apt-get autoremove -y && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
 
 # env for build and for container
 ENV USER "$DOCKER_USER"
@@ -34,14 +36,9 @@ WORKDIR "$HOME"
 
 # tools
 RUN sudo apt-get update && \
-	sudo apt-get install -y build-essential && \
-	sudo apt-get install -y cmake && \
-	sudo apt-get install -y curl && \
-	sudo apt-get install -y openssh-client && \
-	sudo apt-get install -y man-db && \
-	sudo apt-get install -y bash-completion && \
-	sudo apt-get install -y software-properties-common && \
-	sudo apt-get install --no-install-recommends -y language-pack-en-base
+	sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y build-essential cmake curl \
+	openssh-client man-db bash-completion software-properties-common \
+	language-pack-en-base
 
 # git
 RUN sudo apt-get install --no-install-recommends -y software-properties-common && \
@@ -67,7 +64,7 @@ RUN tar -xzf "$TMUX_TAR" -C /tmp
 
 WORKDIR "/tmp/tmux-$TMUX_VERSION"
 
-RUN sudo apt-get install -y libevent-2.1-6 libevent-dev libncurses-dev && \
+RUN sudo apt-get install -y libevent-2.1-7 libevent-dev libncurses-dev && \
 	./configure && \
 	make && \
 	sudo make install
@@ -89,28 +86,29 @@ RUN . "$NVM_DIR/nvm.sh" && \
 	nvm install node && \
 	nvm alias default stable
 
-# rust nightly
+# rust stable
 # Install openssl/pkgconf to compile against for reqwest and Iron.
 RUN sudo apt-get update && \
 	sudo apt-get install pkgconf libssl-dev libasound2-dev libx11-xcb-dev --no-install-recommends -y && \
-	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
+	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
 
-ENV RUST_DEFAULT_TOOLCHAIN='nightly'
+ENV RUST_DEFAULT_TOOLCHAIN='stable'
 
 RUN . $HOME/.cargo/env && \
 	cargo install cargo-watch && \
-	rustup component add rust-src --toolchain nightly && \
+	rustup component add rls rust-analysis rust-src && \
 # RUST WASM support
 	curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && \
-	cargo install cargo-generate
+	cargo install cargo-generate && \
+	curl https://raw.githubusercontent.com/second-state/ssvmup/master/installer/init.sh -sSf | sh
 
-# deno
+
+# deno, keep unzip for `deno upgrade` 
 RUN sudo apt-get update && sudo apt-get install unzip -y && \
 	curl -fsSL https://deno.land/x/install/install.sh | sh && \
 	sudo mkdir "/usr/local/etc/bash_completion.d" && \
 	sudo chown "$USER:$USER" "/usr/local/etc/bash_completion.d" && \
 	sudo "$HOME/.deno/bin/deno" completions bash > "/usr/local/etc/bash_completion.d/deno.bash" && \
-	sudo apt-get purge unzip -y && \
 	sudo apt-get clean && \
 	sudo rm -rf /var/lib/apt/lists/*
 
@@ -119,7 +117,6 @@ ENV PATH="$DENO_INSTALL/bin:$PATH"
 
 # Java
 RUN sudo apt-get update && \
-	DEBIAN_FRONTEND=noninteractive && \
 	sudo apt-get -y install openjdk-11-jdk-headless && \
 	sudo apt-get clean && \
 	sudo rm -rf /var/lib/apt/lists/*
@@ -154,8 +151,7 @@ RUN sudo chown "$USER:$USER" "$HOME/.config/nvim/init.vim" && \
 	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
 	nvim +PlugInstall +qall && \
 	. "$NVM_DIR/nvm.sh" && \
-	. "$HOME/.cargo/env" && \
-	python3 "$HOME/.config/nvim/plugged/YouCompleteMe/install.py" --racer-completer --ts-completer
+	. "$HOME/.cargo/env"
 
 # .bashrc alias
 COPY ./.bashrc /tmp/.bashrc
